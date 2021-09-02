@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -48,6 +49,37 @@ func (t *Tasks) getTask(id int) (*Task, error) {
 	return nil, ErrTaskNotFound
 }
 
+func getRequestId(path string) (int, error) {
+	parts := strings.Split(path, "/")
+	if len(parts) != 3 {
+		return -1, errors.New("invalid number of parsed elements")
+	}
+	id_str := parts[len(parts) - 1]
+	id, err := strconv.Atoi(id_str)
+	if err != nil {
+		return -1, errors.New("cannot parse ID from URL to number")
+	}
+	if id < 0 {
+		return -1, errors.New("requested ID cannot be negative")
+	}
+	return id, nil
+}
+
+func (t *Tasks) deleteTask(id int) error {
+	id_to_delete := -1
+	for i, task := range t.t {
+		if task.ID == id {
+			id_to_delete = i
+			break
+		}
+	}
+	if id_to_delete == -1 {
+		return fmt.Errorf("ID %v was not found", id)
+	}
+	t.t = append(t.t[:id_to_delete], t.t[id_to_delete+1:]...)
+	return nil
+}
+
 func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 	t.l.Println("Handling all tasks GET or POST")
 	
@@ -61,10 +93,11 @@ func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 		t.l.Println("POST method")
 		defer r.Body.Close()
 		task := &Task{}
-		json.NewDecoder(r.Body).Decode(task)
-		
-		new_id := t.getNewId()
-		task.ID = new_id
+		if err := json.NewDecoder(r.Body).Decode(task); err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+		task.ID = t.getNewId()
 		t.t = append(t.t, task)
 		return
 	}
@@ -74,38 +107,40 @@ func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 
 func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 	t.l.Println("Handling single task request")
+	id, err := getRequestId(r.URL.Path)
+	if err != nil {
+		t.l.Println("Error occured while parsing ID. Error:", err)
+		http.Error(rw, "Cannot parse requested ID", http.StatusBadRequest)
+		return
+	}
 	
 	if r.Method == http.MethodGet {
 		t.l.Println("GET method")
-		parts := strings.Split(r.URL.Path, "/")
-		if len(parts) != 3 {
-			http.Error(rw, "Invalid number of parsed elements", http.StatusBadRequest)
-			return
-		}
-		id_str := parts[len(parts) - 1]
-		id, err := strconv.Atoi(id_str)
-		if err != nil {
-			http.Error(rw, "Cannot parse ID from URL to number", http.StatusBadRequest)
-			return
-		}
 		task, err := t.getTask(id)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
-		json.NewEncoder(rw).Encode(task)
+		if err := json.NewEncoder(rw).Encode(task); err != nil {
+			http.Error(rw, fmt.Sprintf("Cannot serialize task with ID: %v", id), http.StatusInternalServerError)
+			return
+		}
+
 		return
 	}
 	
-	if r.Method == http.MethodPut {
-		t.l.Println("PUT method")
-		// TODO: Implement
-		return
-	}
+	// if r.Method == http.MethodPut {
+	// 	t.l.Println("PUT method")
+	// 	// TODO: Implement
+	// 	return
+	// }
 
 	if r.Method == http.MethodDelete {
 		t.l.Println("DELETE method")
-		// TODO: Implement
+		if err := t.deleteTask(id); err != nil {
+			http.Error(rw, fmt.Sprintf("Cannot delete task with ID: %v", id), http.StatusBadRequest)
+			return
+		}
 		return
 	}
 
