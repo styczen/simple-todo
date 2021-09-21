@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 // Task represents data about one task user provided
@@ -32,11 +35,12 @@ func NewTasksHandler(l *log.Logger) *Tasks {
 	return &Tasks{l: l, t: []*Task{
 		&Task{ID: 1, Description: "Read a book", DueDate: time.Now()},
 		&Task{ID: 2, Description: "Do one Duolingo", DueDate: time.Now().AddDate(0, 0, 2)},
+		&Task{ID: 3, Description: "Ride a bike"},
 	}}
 }
 
 func (t *Tasks) getNewId() int {
-	last_task := t.t[len(t.t) - 1]
+	last_task := t.t[len(t.t)-1]
 	return last_task.ID + 1
 }
 
@@ -54,7 +58,7 @@ func getRequestId(path string) (int, error) {
 	if len(parts) != 3 {
 		return -1, errors.New("invalid number of parsed elements")
 	}
-	id_str := parts[len(parts) - 1]
+	id_str := parts[len(parts)-1]
 	id, err := strconv.Atoi(id_str)
 	if err != nil {
 		return -1, errors.New("cannot parse ID from URL to number")
@@ -82,13 +86,13 @@ func (t *Tasks) deleteTask(id int) error {
 
 func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 	t.l.Println("Handling all tasks GET or POST")
-	
+
 	if r.Method == http.MethodGet {
 		t.l.Println("GET method")
 		json.NewEncoder(rw).Encode(t.t)
 		return
 	}
-	
+
 	if r.Method == http.MethodPost {
 		t.l.Println("POST method")
 		defer r.Body.Close()
@@ -101,7 +105,7 @@ func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 		t.t = append(t.t, task)
 		return
 	}
-	
+
 	http.Error(rw, "Invalid HTTP request method", http.StatusBadRequest)
 }
 
@@ -113,7 +117,7 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Cannot parse requested ID", http.StatusBadRequest)
 		return
 	}
-	
+
 	if r.Method == http.MethodGet {
 		t.l.Println("GET method")
 		task, err := t.getTask(id)
@@ -128,12 +132,20 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	
-	// if r.Method == http.MethodPut {
-	// 	t.l.Println("PUT method")
-	// 	// TODO: Implement
-	// 	return
-	// }
+
+	if r.Method == http.MethodPut {
+		t.l.Println("PUT method")
+		task, err := t.getTask(id)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := json.NewDecoder(r.Body).Decode(task); err != nil {
+			http.Error(rw, fmt.Sprintf("Cannot deserialize task with ID: %v", id), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
 
 	if r.Method == http.MethodDelete {
 		t.l.Println("DELETE method")
@@ -147,9 +159,36 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 	http.Error(rw, "Invalid HTTP request method", http.StatusBadRequest)
 }
 
+var db *sql.DB
+var port int = 9090
+
 func main() {
 	l := log.New(os.Stdout, "simple-todo-api ", log.LstdFlags)
-	l.Println("Starting TODO server")
+	
+	l.Println("Starting TODO server in port", port)
+	// Capture connection properties
+	// TODO: This probably needs some updating but not now
+	cfg := mysql.Config{
+		User:   os.Getenv("DBUSER"),
+		Passwd: os.Getenv("DBPASS"),
+		Net:    "tcp",
+		Addr:   "127.0.0.1:3306",
+		DBName: "simple_todo",
+		AllowNativePasswords: true,
+	}
+	// Get a database handle
+	var err error
+	db, err = sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		l.Fatal(err)
+	}
+	defer db.Close()
+	
+	pingErr := db.Ping()
+	if pingErr != nil {
+		l.Fatal("Ping: ", pingErr)
+	}
+
 
 	// Handler for TODO tasks
 	th := NewTasksHandler(l)
@@ -161,7 +200,7 @@ func main() {
 	mux.HandleFunc("/tasks/", th.HandleSingleTask)
 
 	srv := &http.Server{
-		Addr:     ":9090",
+		Addr:     ":" + strconv.Itoa(port),
 		Handler:  mux,
 		ErrorLog: l,
 		// TODO Read about timeouts
