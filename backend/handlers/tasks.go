@@ -19,16 +19,23 @@ func NewTasksHandler(l *log.Logger) *Tasks {
 	return &Tasks{l: l}
 }
 
-func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
+func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 	t.l.Println("Handling all tasks GET or POST")
 
 	if r.Method == http.MethodGet {
-		t.l.Println("GET method")
+		t.l.Println("All GET method")
 		tasks, err := data.GetAllTasks()
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot get all tasks. Reason: %v", err), http.StatusInternalServerError)
 			return
 		}
+		if len(*tasks) == 0 {
+			t.l.Print("There are no tasks")
+			rw.WriteHeader(http.StatusOK)
+			fmt.Fprintln(rw, "There are not tasks")
+			return
+		}
+
 		if err := tasks.ToJSON(rw); err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot serializer all tasks. Reason: %v", err), http.StatusInternalServerError)
 			return
@@ -37,19 +44,30 @@ func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		t.l.Println("POST method")
+		t.l.Println("All POST method")
 		defer r.Body.Close()
 		var task data.Task
 		if err := task.FromJSON(r.Body); err != nil {
-			http.Error(rw, fmt.Sprintf("Cannot deserializ new task. Reason: %v", err), http.StatusBadRequest)
+			http.Error(rw, fmt.Sprintf("Cannot deserialize new task. Reason: %v", err), http.StatusBadRequest)
 			return
 		}
-		last_id, err := data.AddNewTask(task)
+		last_id, err := data.AddNewTask(&task)
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot add new task. Reason: %v", err), http.StatusBadRequest)
 			return
 		}
 		t.l.Println("Last ID:", last_id)
+		rw.WriteHeader(http.StatusCreated)
+		// TODO: Write custom JSON response with created task ID
+		return
+	}
+
+	if r.Method == http.MethodDelete {
+		t.l.Println("All DELETE method")
+		if err := data.DeleteAllTasks(); err != nil {
+			http.Error(rw, fmt.Sprintf("Cannot remove all tasks. Reason: %v", err), http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
@@ -58,7 +76,7 @@ func (t *Tasks) GetAndAddTask(rw http.ResponseWriter, r *http.Request) {
 
 func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 	t.l.Println("Handling single task request")
-	_, err := getRequestId(r.URL.Path)
+	id, err := getRequestId(r.URL.Path)
 	if err != nil {
 		t.l.Println("Error occured while parsing ID. Error:", err)
 		http.Error(rw, "Cannot parse requested ID", http.StatusBadRequest)
@@ -67,43 +85,48 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		t.l.Println("GET method")
-		// TODO: Use data package to connect to DB and get data
-		// task, err := t.getTask(id)
-		// if err != nil {
-		// 	http.Error(rw, err.Error(), http.StatusBadRequest)
-		// 	return
-		// }
-		// if err := json.NewEncoder(rw).Encode(task); err != nil {
-		// 	http.Error(rw, fmt.Sprintf("Cannot serialize task with ID: %v", id), http.StatusInternalServerError)
-		// 	return
-		// }
+		task, err := data.GetTask(id)
+		if err != nil {
+			error_msg := fmt.Sprint("Cannot get task with ID: ", id, ". Error: ", err)
+			t.l.Println(error_msg)
+			rw.WriteHeader(http.StatusNotFound)
+			fmt.Fprintln(rw, error_msg)
+			return
+		}
+
+		if err := task.ToJSON(rw); err != nil {
+			error_msg := fmt.Sprint("Cannot serialize task with ID: ", id, ". Error: ", err)
+			t.l.Println(error_msg)
+			http.Error(rw, error_msg, http.StatusBadRequest)
+			return
+		}
+
 		return
 	}
 
 	if r.Method == http.MethodPut {
 		t.l.Println("PUT method")
-		// TODO: Use data package to connect with DB and update task
-
-		// task, err := t.getTask(id)
-		// if err != nil {
-		// 	http.Error(rw, err.Error(), http.StatusBadRequest)
-		// 	return
-		// }
-		// if err := json.NewDecoder(r.Body).Decode(task); err != nil {
-		// 	http.Error(rw, fmt.Sprintf("Cannot deserialize task with ID: %v", id), http.StatusInternalServerError)
-		// 	return
-		// }
+		var updated_task data.Task
+		defer r.Body.Close()
+		if err := updated_task.FromJSON(r.Body); err != nil {
+			http.Error(rw, fmt.Sprintf("Cannot deserialize new task. Reason: %v", err), http.StatusBadRequest)
+			return
+		}
+		if err := data.UpdateTask(&updated_task, id); err != nil {
+			http.Error(rw, fmt.Sprint("Cannot update task with ID; ", id, ". Reason: ", err), http.StatusBadRequest)
+			return
+		}
 		return
 	}
 
 	if r.Method == http.MethodDelete {
 		t.l.Println("DELETE method")
-		// TODO: Use data package to connect with DB and delete task
-
-		// if err := t.deleteTask(id); err != nil {
-		// 	http.Error(rw, fmt.Sprintf("Cannot delete task with ID: %v", id), http.StatusBadRequest)
-		// 	return
-		// }
+		if err := data.DeleteTask(id); err != nil {
+			error_msg := fmt.Sprint("Cannot delete task with ID: ", id, ". Error: ", err)
+			t.l.Println(error_msg)
+			http.Error(rw, error_msg, http.StatusBadRequest)
+			return
+		}
 		return
 	}
 

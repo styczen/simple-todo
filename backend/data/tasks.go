@@ -59,7 +59,7 @@ func GetAllTasks() (*Tasks, error) {
 	return &tasks, nil
 }
 
-func AddNewTask(task Task) (int64, error) {
+func AddNewTask(task *Task) (int64, error) {
 	db, err := setupDb()
 	if err != nil {
 		return -1, err
@@ -73,6 +73,52 @@ func AddNewTask(task Task) (int64, error) {
 		return -1, err
 	}
 	return last_id, nil
+}
+
+func GetTask(id int) (*Task, error) {
+	db, err := setupDb()
+	if err != nil {
+		return nil, err
+	}
+	var task Task
+	row := db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
+	if err := row.Scan(&task.ID, &task.Description, &task.DueDate); err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+func DeleteTask(id int) error {
+	db, err := setupDb()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE FROM tasks WHERE id = ?", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteAllTasks() error {
+	db, err := setupDb()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE FROM tasks")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateTask(task *Task, id int) error {
+	db, err := setupDb()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("UPDATE tasks SET description = ?, due_date = ? WHERE id = ?", task.Description, task.DueDate, id)
+	return err
 }
 
 func setupDb() (*sql.DB, error) {
@@ -95,11 +141,6 @@ func setupDb() (*sql.DB, error) {
 		return nil, pingErr
 	}
 	return db, nil
-}
-
-func (t *Tasks) getTask(id int) (*Task, error) {
-
-	return nil, ErrTaskNotFound
 }
 
 // func (t *Tasks) deleteTask(id int) error {

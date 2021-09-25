@@ -24,7 +24,7 @@ func main() {
 	// Request paths multiplexer
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/tasks", th.GetAndAddTask)
+	mux.HandleFunc("/tasks", th.HandleAllTasks)
 	mux.HandleFunc("/tasks/", th.HandleSingleTask)
 
 	srv := &http.Server{
