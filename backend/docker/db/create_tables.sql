@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS tasks;
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    due_date DATETIME NOT NULL,
+    PRIMARY KEY (`id`)
+);

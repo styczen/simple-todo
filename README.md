@@ -7,3 +7,6 @@ to my local WiFi.
 ## Backend
 
 TODO:
+
+- Create decent UI
+- Store current data locally when not connected to server

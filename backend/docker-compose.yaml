@@ -1,0 +1,43 @@
+version: "3"
+services:
+  rest_server:
+    image: rest_server
+    build:
+      context: .
+      dockerfile: ./docker/server/Dockerfile
+    depends_on:
+      - db
+    container_name: rest_server
+    networks:
+     - app_network
+    ports:
+      - ${API_HTTP_PORT}:${API_HTTP_PORT}
+    environment:
+      - API_HTTP_PORT=${API_HTTP_PORT}
+      - DBUSER=${DBUSER}
+      - DBPASS=${DBPASS}
+
+  db:
+    image: db
+    container_name: db
+    build:
+      context: ./docker/db
+      dockerfile: Dockerfile # this line is not necessary because Dockerfile is in context
+    ports:
+      - 3306:3306
+    networks: 
+      - app_network
+    environment:
+      - MYSQL_ROOT_HOST=${DBUSER}
+      - MYSQL_USER=${DBUSER}
+      - MYSQL_PASSWORD=${DBPASS}
+      - MYSQL_DATABASE=simple_todo
+      - MYSQL_ROOT_PASSWORD=${DBPASS}
+    volumes:
+      - db_volume:/var/lib/mysql
+
+volumes:
+  db_volume:
+
+networks:
+  app_network:

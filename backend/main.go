@@ -6,18 +6,18 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 
 	"github.com/styczen/simple_todo/handlers"
 )
 
-var port int = 9090
-
 func main() {
-	l := log.New(os.Stdout, "simple-todo-api ", log.LstdFlags)
+	port := os.Getenv("API_HTTP_PORT")
 
+	l := log.New(os.Stdout, "simple-todo-api ", log.LstdFlags)
 	l.Println("Starting TODO server in port", port)
 
+	// TODO: Initialize DB connection and pass it to handler
+	
 	// Handler for TODO tasks
 	th := handlers.NewTasksHandler(l)
 
@@ -28,7 +28,7 @@ func main() {
 	mux.HandleFunc("/tasks/", th.HandleSingleTask)
 
 	srv := &http.Server{
-		Addr:     ":" + strconv.Itoa(port),
+		Addr:     ":" + port,
 		Handler:  mux,
 		ErrorLog: l,
 		// TODO Read about timeouts

@@ -5,11 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
+
+type TasksDb struct {
+	db *sql.DB
+	l  *log.Logger
+}
+
+func NewTasksDb(l *log.Logger) *TasksDb {
+	// TODO: Finish it
+	// db, err := setupDb()
+}
 
 // Task represents data about one task user provided
 type Task struct {
@@ -126,7 +137,7 @@ func setupDb() (*sql.DB, error) {
 		User:                 os.Getenv("DBUSER"),
 		Passwd:               os.Getenv("DBPASS"),
 		Net:                  "tcp",
-		Addr:                 "127.0.0.1:3306",
+		Addr:                 "db:3306",
 		DBName:               "simple_todo",
 		AllowNativePasswords: true,
 		ParseTime:            true,
