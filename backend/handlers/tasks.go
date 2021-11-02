@@ -12,11 +12,12 @@ import (
 )
 
 type Tasks struct {
-	l *log.Logger
+	l   *log.Logger
+	tDb *data.TasksDb
 }
 
-func NewTasksHandler(l *log.Logger) *Tasks {
-	return &Tasks{l: l}
+func NewTasksHandler(tDb *data.TasksDb, l *log.Logger) *Tasks {
+	return &Tasks{tDb: tDb, l: l}
 }
 
 func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
@@ -24,7 +25,7 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		t.l.Println("All GET method")
-		tasks, err := data.GetAllTasks()
+		tasks, err := t.tDb.GetAllTasks()
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot get all tasks. Reason: %v", err), http.StatusInternalServerError)
 			return
@@ -51,7 +52,7 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 			http.Error(rw, fmt.Sprintf("Cannot deserialize new task. Reason: %v", err), http.StatusBadRequest)
 			return
 		}
-		last_id, err := data.AddNewTask(&task)
+		last_id, err := t.tDb.AddNewTask(&task)
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot add new task. Reason: %v", err), http.StatusBadRequest)
 			return
@@ -64,7 +65,7 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodDelete {
 		t.l.Println("All DELETE method")
-		if err := data.DeleteAllTasks(); err != nil {
+		if err := t.tDb.DeleteAllTasks(); err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot remove all tasks. Reason: %v", err), http.StatusInternalServerError)
 			return
 		}
@@ -85,7 +86,7 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		t.l.Println("GET method")
-		task, err := data.GetTask(id)
+		task, err := t.tDb.GetTask(id)
 		if err != nil {
 			error_msg := fmt.Sprint("Cannot get task with ID: ", id, ". Error: ", err)
 			t.l.Println(error_msg)
@@ -112,7 +113,7 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 			http.Error(rw, fmt.Sprintf("Cannot deserialize new task. Reason: %v", err), http.StatusBadRequest)
 			return
 		}
-		if err := data.UpdateTask(&updated_task, id); err != nil {
+		if err := t.tDb.UpdateTask(&updated_task, id); err != nil {
 			http.Error(rw, fmt.Sprint("Cannot update task with ID; ", id, ". Reason: ", err), http.StatusBadRequest)
 			return
 		}
@@ -121,7 +122,7 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodDelete {
 		t.l.Println("DELETE method")
-		if err := data.DeleteTask(id); err != nil {
+		if err := t.tDb.DeleteTask(id); err != nil {
 			error_msg := fmt.Sprint("Cannot delete task with ID: ", id, ". Error: ", err)
 			t.l.Println(error_msg)
 			http.Error(rw, error_msg, http.StatusBadRequest)

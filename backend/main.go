@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/styczen/simple_todo/data"
 	"github.com/styczen/simple_todo/handlers"
 )
 
@@ -16,10 +17,11 @@ func main() {
 	l := log.New(os.Stdout, "simple-todo-api ", log.LstdFlags)
 	l.Println("Starting TODO server in port", port)
 
-	// TODO: Initialize DB connection and pass it to handler
+	// Initialize DB connection and pass it to handler
+	tDb := data.NewTasksDb(l)
 	
 	// Handler for TODO tasks
-	th := handlers.NewTasksHandler(l)
+	th := handlers.NewTasksHandler(tDb, l)
 
 	// Request paths multiplexer
 	mux := http.NewServeMux()

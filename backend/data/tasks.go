@@ -18,8 +18,12 @@ type TasksDb struct {
 }
 
 func NewTasksDb(l *log.Logger) *TasksDb {
-	// TODO: Finish it
-	// db, err := setupDb()
+	db, err := setupDb()
+	if err != nil {
+		l.Fatal(err)
+		return nil
+	}
+	return &TasksDb{db: db, l: l}
 }
 
 // Task represents data about one task user provided
@@ -48,12 +52,8 @@ func (t *Tasks) ToJSON(w io.Writer) error {
 
 var ErrTaskNotFound = fmt.Errorf("Task not found")
 
-func GetAllTasks() (*Tasks, error) {
-	db, err := setupDb()
-	if err != nil {
-		return nil, err
-	}
-	rows, err := db.Query("SELECT * FROM tasks")
+func (tDb *TasksDb) GetAllTasks() (*Tasks, error) {
+	rows, err := tDb.db.Query("SELECT * FROM tasks")
 	if err != nil {
 		return nil, err
 	}
@@ -70,12 +70,8 @@ func GetAllTasks() (*Tasks, error) {
 	return &tasks, nil
 }
 
-func AddNewTask(task *Task) (int64, error) {
-	db, err := setupDb()
-	if err != nil {
-		return -1, err
-	}
-	result, err := db.Exec("INSERT tasks(description, due_date) VALUES (?, ?)", task.Description, task.DueDate)
+func (tDb *TasksDb) AddNewTask(task *Task) (int64, error) {
+	result, err := tDb.db.Exec("INSERT tasks(description, due_date) VALUES (?, ?)", task.Description, task.DueDate)
 	if err != nil {
 		return -1, err
 	}
@@ -86,49 +82,33 @@ func AddNewTask(task *Task) (int64, error) {
 	return last_id, nil
 }
 
-func GetTask(id int) (*Task, error) {
-	db, err := setupDb()
-	if err != nil {
-		return nil, err
-	}
+func (tDb *TasksDb) GetTask(id int) (*Task, error) {
 	var task Task
-	row := db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
+	row := tDb.db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
 	if err := row.Scan(&task.ID, &task.Description, &task.DueDate); err != nil {
 		return nil, err
 	}
 	return &task, nil
 }
 
-func DeleteTask(id int) error {
-	db, err := setupDb()
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("DELETE FROM tasks WHERE id = ?", id)
+func (tDb *TasksDb) DeleteTask(id int) error {
+	_, err := tDb.db.Exec("DELETE FROM tasks WHERE id = ?", id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func DeleteAllTasks() error {
-	db, err := setupDb()
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("DELETE FROM tasks")
+func (tDb *TasksDb) DeleteAllTasks() error {
+	_, err := tDb.db.Exec("DELETE FROM tasks")
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func UpdateTask(task *Task, id int) error {
-	db, err := setupDb()
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("UPDATE tasks SET description = ?, due_date = ? WHERE id = ?", task.Description, task.DueDate, id)
+func (tDb *TasksDb) UpdateTask(task *Task, id int) error {
+	_, err := tDb.db.Exec("UPDATE tasks SET description = ?, due_date = ? WHERE id = ?", task.Description, task.DueDate, id)
 	return err
 }
 
@@ -153,20 +133,3 @@ func setupDb() (*sql.DB, error) {
 	}
 	return db, nil
 }
-
-// func (t *Tasks) deleteTask(id int) error {
-// 	id_to_delete := -1
-// 	for i, task := range t.t {
-// 		if task.ID == id {
-// 			id_to_delete = i
-// 			break
-// 		}
-// 	}
-// 	if id_to_delete == -1 {
-// 		return fmt.Errorf("ID %v was not found", id)
-// 	}
-// 	t.t = append(t.t[:id_to_delete], t.t[id_to_delete+1:]...)
-// 	return nil
-// }
-
-// func NewData
