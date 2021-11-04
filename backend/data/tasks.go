@@ -38,6 +38,7 @@ type Task struct {
 	ID          int       `json:"id"`
 	Description string    `json:"description"`
 	DueDate     time.Time `json:"due_date"`
+	Completed   bool      `json:"completed"`
 }
 
 func (t *Task) ToJSON(w io.Writer) error {
@@ -69,7 +70,7 @@ func (tDb *TasksDb) GetAllTasks() (*Tasks, error) {
 	var tasks Tasks
 	for rows.Next() {
 		var task Task
-		if err := rows.Scan(&task.ID, &task.Description, &task.DueDate); err != nil {
+		if err := rows.Scan(&task.ID, &task.Description, &task.DueDate, &task.Completed); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, &task)
@@ -77,7 +78,7 @@ func (tDb *TasksDb) GetAllTasks() (*Tasks, error) {
 	return &tasks, nil
 }
 
-func (tDb *TasksDb) AddNewTask(task *Task) (int64, error) {
+func (tDb *TasksDb) AddNewTask(task *Task) (int, error) {
 	result, err := tDb.db.Exec("INSERT tasks(description, due_date) VALUES (?, ?)", task.Description, task.DueDate)
 	if err != nil {
 		return -1, err
@@ -86,13 +87,13 @@ func (tDb *TasksDb) AddNewTask(task *Task) (int64, error) {
 	if err != nil {
 		return -1, err
 	}
-	return last_id, nil
+	return int(last_id), nil
 }
 
 func (tDb *TasksDb) GetTask(id int) (*Task, error) {
 	var task Task
 	row := tDb.db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
-	if err := row.Scan(&task.ID, &task.Description, &task.DueDate); err != nil {
+	if err := row.Scan(&task.ID, &task.Description, &task.DueDate, &task.Completed); err != nil {
 		return nil, err
 	}
 	return &task, nil
@@ -115,7 +116,9 @@ func (tDb *TasksDb) DeleteAllTasks() error {
 }
 
 func (tDb *TasksDb) UpdateTask(task *Task, id int) error {
-	_, err := tDb.db.Exec("UPDATE tasks SET description = ?, due_date = ? WHERE id = ?", task.Description, task.DueDate, id)
+	_, err := tDb.db.Exec(
+		"UPDATE tasks SET description = ?, due_date = ?, completed = ? WHERE id = ?",
+		task.Description, task.DueDate, task.Completed, id)
 	return err
 }
 

@@ -58,8 +58,16 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 		t.l.Println("Last ID:", last_id)
+		task.ID = last_id
 		rw.WriteHeader(http.StatusCreated)
-		// TODO: Write custom JSON response with created task ID
+		// What happens when there is some problem when serializing to JSON?
+		// There will be status 201 (created) but bad JSON...
+		if err := task.ToJSON(rw); err != nil {
+			http.Error(rw, fmt.Sprintf(
+				"Cannot serialize new task. Reason: %v. But it should not happen :-)", err),
+				http.StatusBadRequest)
+			return
+		}
 		return
 	}
 

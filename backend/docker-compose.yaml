@@ -28,11 +28,11 @@ services:
     networks: 
       - app_network
     environment:
-      - MYSQL_ROOT_HOST=${DBUSER}
-      - MYSQL_USER=${DBUSER}
-      - MYSQL_PASSWORD=${DBPASS}
+      - MYSQL_ROOT_HOST=${DBUSER:-user}
+      - MYSQL_USER=${DBUSER:-user}
+      - MYSQL_PASSWORD=${DBPASS:?database password is not set}
       - MYSQL_DATABASE=simple_todo
-      - MYSQL_ROOT_PASSWORD=${DBPASS}
+      - MYSQL_ROOT_PASSWORD=${DBPASS:?database password is not set}
     volumes:
       - db_volume:/var/lib/mysql
 

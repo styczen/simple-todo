@@ -8,5 +8,7 @@ to my local WiFi.
 
 TODO:
 
-- Create decent UI
+- Create simplest/usable UI possible
 - Store current data locally when not connected to server
+- Write some tests for backend,
+- When simple UI is done and other stuff is finished, make UI better
