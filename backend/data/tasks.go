@@ -26,6 +26,13 @@ func NewTasksDb(l *log.Logger) *TasksDb {
 	return &TasksDb{db: db, l: l}
 }
 
+func (tDb *TasksDb) CloseDbConn() {
+	if err := tDb.db.Close(); err != nil {
+		tDb.l.Print(err)
+	}
+	tDb.l.Print("Closed database connection successfully")
+}
+
 // Task represents data about one task user provided
 type Task struct {
 	ID          int       `json:"id"`
