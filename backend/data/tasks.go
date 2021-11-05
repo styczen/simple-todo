@@ -18,7 +18,7 @@ type TasksDb struct {
 }
 
 func NewTasksDb(l *log.Logger) *TasksDb {
-	db, err := setupDb()
+	db, err := setupDb(l)
 	if err != nil {
 		l.Fatal(err)
 		return nil
@@ -122,7 +122,7 @@ func (tDb *TasksDb) UpdateTask(task *Task, id int) error {
 	return err
 }
 
-func setupDb() (*sql.DB, error) {
+func setupDb(l *log.Logger) (*sql.DB, error) {
 	cfg := mysql.Config{
 		User:                 os.Getenv("DBUSER"),
 		Passwd:               os.Getenv("DBPASS"),
@@ -133,13 +133,26 @@ func setupDb() (*sql.DB, error) {
 		ParseTime:            true,
 	}
 	// Get a database handle
-	db, err := sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		return nil, err
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	timeout := 30 * time.Second
+	timeoutExceeded := time.After(timeout)
+	for {
+		select {
+		case <-timeoutExceeded:
+			return nil, fmt.Errorf("cannot connect to database after %s seconds", timeout)
+		case <-ticker.C:
+			db, err := sql.Open("mysql", cfg.FormatDSN())
+			if err == nil {
+				err := db.Ping()
+				if err == nil {
+					return db, nil
+				}
+				l.Println("Cannot ping to server with error:", err)
+				continue
+			}
+			l.Println("Failed to connect to server with error:", err, "Trying again...")
+		}
 	}
-	pingErr := db.Ping()
-	if pingErr != nil {
-		return nil, pingErr
-	}
-	return db, nil
 }

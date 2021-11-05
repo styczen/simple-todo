@@ -20,6 +20,7 @@ func main() {
 	// Initialize DB connection and pass it to handler
 	tDb := data.NewTasksDb(l)
 	defer tDb.CloseDbConn()
+	l.Println("Connected to database")
 
 	// Handler for TODO tasks
 	th := handlers.NewTasksHandler(tDb, l)

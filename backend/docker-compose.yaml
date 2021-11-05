@@ -9,7 +9,7 @@ services:
       - db
     container_name: rest_server
     networks:
-     - app_network
+      - app_network
     ports:
       - ${API_HTTP_PORT}:${API_HTTP_PORT}
     environment:
@@ -25,7 +25,7 @@ services:
       dockerfile: Dockerfile # this line is not necessary because Dockerfile is in context
     ports:
       - 3306:3306
-    networks: 
+    networks:
       - app_network
     environment:
       - MYSQL_ROOT_HOST=${DBUSER:-user}
