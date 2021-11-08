@@ -27,9 +27,13 @@ const App: React.FC = () => {
     },
   ]);
 
-  // Write function to pass to child to update the todo item
-  // TODO: Continues here: https://www.youtube.com/watch?v=SGEitne8N-Q
-
+  const toggleCompleted = (id: number) => {
+    const new_tasks = [...tasks]
+    const found_idx = new_tasks.findIndex((task) => task.id === id)
+    new_tasks[found_idx].completed = !new_tasks[found_idx].completed;
+    setTasks(new_tasks);
+  };
+ 
   return (
     <View style={styles.container}>
       <Header />
@@ -40,11 +44,13 @@ const App: React.FC = () => {
             data={tasks}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
+              //              <Todo {...item} />
               <Todo
                 id={item.id}
                 description={item.description}
                 due_date={item.due_date}
                 completed={item.completed}
+                toggleCompleted={toggleCompleted}
               />
             )}
           />

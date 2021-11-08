@@ -6,16 +6,22 @@ import { TodoProps } from "../types";
 const Todo: React.FC<TodoProps> = (item) => {
   return (
     <TouchableOpacity
-      onPress={() => console.log("pressed")}
+      onPress={() => console.log("edit task pressed")}
       style={styles.item}
     >
       <View style={styles.verticalAlign}>
         <CheckBox
           value={item.completed}
-          onValueChange={() => console.log("checkbox pressed")}
+          onValueChange={() => item.toggleCompleted(item.id)}
         />
         <View style={styles.info}>
-          <Text>{item.description}</Text>
+          {item.completed ? (
+            <Text style={{ textDecorationLine: "line-through" }}>
+              {item.description}
+            </Text>
+          ) : (
+            <Text>{item.description}</Text>
+          )}
           <Text>{item.due_date.toDateString()}</Text>
         </View>
       </View>
