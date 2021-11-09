@@ -6,7 +6,7 @@ import { TodoProps } from "../types";
 const Todo: React.FC<TodoProps> = (item) => {
   return (
     <TouchableOpacity
-      onPress={() => console.log("edit task pressed")}
+      onPress={() => console.log("TODO: Implement edit task function")}
       style={styles.item}
     >
       <View style={styles.verticalAlign}>
