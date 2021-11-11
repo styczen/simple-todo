@@ -5,3 +5,7 @@ export type TodoProps = {
   completed: boolean;
   toggleCompleted: (id: number) => void;
 };
+
+export type AddTaskProps = {
+  closeModal: () => void;
+};

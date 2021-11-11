@@ -9,10 +9,13 @@ import {
   Modal,
   TouchableOpacity,
   Button,
+  TextInput,
 } from "react-native";
+import { Icon } from "react-native-elements";
 import Todo from "./components/todo";
 import Header from "./components/header";
-import { TodoProps } from "./types";
+import AddTask from "./components/add_task";
+import { TodoProps, AddTaskProps } from "./types";
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<TodoProps[]>([
@@ -28,48 +31,48 @@ const App: React.FC = () => {
       due_date: new Date(Date.now()),
       completed: true,
     },
-    {
-      id: 3,
-      description: "Third task",
-      due_date: new Date(Date.now()),
-      completed: true,
-    },
-    {
-      id: 4,
-      description: "First task",
-      due_date: new Date(Date.now()),
-      completed: false,
-    },
-    {
-      id: 5,
-      description: "Second task",
-      due_date: new Date(Date.now()),
-      completed: true,
-    },
-    {
-      id: 6,
-      description: "Third task",
-      due_date: new Date(Date.now()),
-      completed: true,
-    },
-    {
-      id: 7,
-      description: "First task",
-      due_date: new Date(Date.now()),
-      completed: false,
-    },
-    {
-      id: 8,
-      description: "Second task",
-      due_date: new Date(Date.now()),
-      completed: true,
-    },
-    {
-      id: 9,
-      description: "Third task",
-      due_date: new Date(Date.now()),
-      completed: true,
-    },
+    // {
+    //   id: 3,
+    //   description: "Third task",
+    //   due_date: new Date(Date.now()),
+    //   completed: true,
+    // },
+    // {
+    //   id: 4,
+    //   description: "First task",
+    //   due_date: new Date(Date.now()),
+    //   completed: false,
+    // },
+    // {
+    //   id: 5,
+    //   description: "Second task",
+    //   due_date: new Date(Date.now()),
+    //   completed: true,
+    // },
+    // {
+    //   id: 6,
+    //   description: "Third task",
+    //   due_date: new Date(Date.now()),
+    //   completed: true,
+    // },
+    // {
+    //   id: 7,
+    //   description: "First task",
+    //   due_date: new Date(Date.now()),
+    //   completed: false,
+    // },
+    // {
+    //   id: 8,
+    //   description: "Second task",
+    //   due_date: new Date(Date.now()),
+    //   completed: true,
+    // },
+    // {
+    //   id: 9,
+    //   description: "Third task",
+    //   due_date: new Date(Date.now()),
+    //   completed: true,
+    // },
   ]);
 
   const [addTaskModal, setAddTaskModal] = useState<boolean>(false);
@@ -81,20 +84,23 @@ const App: React.FC = () => {
     setTasks(new_tasks);
   };
 
+  const closeModal = () => {
+    setAddTaskModal(false);
+  };
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header />
       <View style={styles.content}>
         <Modal
           visible={addTaskModal}
           animationType="slide"
-          transparent={false}
+          transparent={true}
           onRequestClose={() => {
-            console.log("Closing modal");
             setAddTaskModal(false);
           }}
         >
-          <Text>Hello modal</Text>
+          <AddTask closeModal={closeModal} />
         </Modal>
         <View style={styles.list}>
           <FlatList
@@ -112,19 +118,19 @@ const App: React.FC = () => {
           />
         </View>
       </View>
-      <View style={styles.bottom}>
-        {/* TODO: this button needs to be done better (right now even add sign is not centered :D) */}
-        <TouchableOpacity
-          style={styles.circleButton}
-          onPress={() => {
-            console.log("Pressed button");
-            setAddTaskModal(true);
-          }}
-        >
-          <Text style={styles.circleButtonText}>+</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      <Icon
+        name="add"
+        size={30}
+        type="material"
+        color="darkseagreen"
+        reverse={true}
+        containerStyle={styles.actionAddButton}
+        onPress={() => {
+          console.log("pressed icon");
+          setAddTaskModal(true);
+        }}
+      />
+    </SafeAreaView>
   );
 };
 
@@ -139,28 +145,10 @@ const styles = StyleSheet.create({
   list: {
     marginTop: 20,
   },
-  bottom: {
+  actionAddButton: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-//    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-//    marginBottom: 30,
-  },
-  circleButton: {
-    backgroundColor: "darkseagreen",
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  circleButtonText: {
-    fontSize: 40,
-    color: "white",
+    bottom: 30,
+    right: 30,
   },
 });
 
