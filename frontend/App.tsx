@@ -1,123 +1,99 @@
-import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FlatList,
   SafeAreaView,
   StyleSheet,
-  Text,
   View,
   Modal,
-  TouchableOpacity,
-  Button,
-  TextInput,
+  Text,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import Todo from "./components/todo";
 import Header from "./components/header";
 import AddTask from "./components/add_task";
-import { TodoProps, AddTaskProps } from "./types";
+import { TodoProps } from "./types";
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<TodoProps[]>([
-    {
-      id: 1,
-      description: "First task",
-      due_date: new Date(Date.now()),
-      completed: false,
-    },
-    {
-      id: 2,
-      description: "Second task",
-      due_date: new Date(Date.now()),
-      completed: true,
-    },
     // {
-    //   id: 3,
-    //   description: "Third task",
-    //   due_date: new Date(Date.now()),
-    //   completed: true,
-    // },
-    // {
-    //   id: 4,
-    //   description: "First task",
+    //   id: 1,
+    //   description: "first task",
     //   due_date: new Date(Date.now()),
     //   completed: false,
-    // },
-    // {
-    //   id: 5,
-    //   description: "Second task",
-    //   due_date: new Date(Date.now()),
-    //   completed: true,
-    // },
-    // {
-    //   id: 6,
-    //   description: "Third task",
-    //   due_date: new Date(Date.now()),
-    //   completed: true,
-    // },
-    // {
-    //   id: 7,
-    //   description: "First task",
-    //   due_date: new Date(Date.now()),
-    //   completed: false,
-    // },
-    // {
-    //   id: 8,
-    //   description: "Second task",
-    //   due_date: new Date(Date.now()),
-    //   completed: true,
-    // },
-    // {
-    //   id: 9,
-    //   description: "Third task",
-    //   due_date: new Date(Date.now()),
-    //   completed: true,
     // },
   ]);
+
+  useEffect(() => {
+    console.log("Starting...");
+    fetch("http://192.168.0.164:9090/tasks")
+      .then((response) => response.json())
+      .then((response) => {
+        let loadedTasks: TodoProps[] = [];
+        for (let i = 0; i < response.length; i += 1) {
+          console.log(i, response[i]);
+          const todo: TodoProps = response[i];
+          todo.due_date = new Date(response[i]);
+          loadedTasks.push(todo);
+        }
+        setTasks(loadedTasks);
+      })
+      .catch((error) => console.log(error));
+  }, []);
 
   const [addTaskModal, setAddTaskModal] = useState<boolean>(false);
 
   const toggleCompleted = (id: number) => {
-    const new_tasks = [...tasks];
-    const found_idx = new_tasks.findIndex((task) => task.id === id);
-    new_tasks[found_idx].completed = !new_tasks[found_idx].completed;
-    setTasks(new_tasks);
+    const newTasks = [...tasks];
+    const foundIdx = newTasks.findIndex((task) => task.id === id);
+    newTasks[foundIdx].completed = !newTasks[foundIdx].completed;
+    setTasks(newTasks);
   };
 
   const closeModal = () => {
     setAddTaskModal(false);
   };
 
+  const addTask = (task: TodoProps) => {
+    console.log("Adding new task");
+    console.log(task);
+    setTasks([...tasks, task]);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Header />
-      <View style={styles.content}>
-        <Modal
-          visible={addTaskModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => {
-            setAddTaskModal(false);
-          }}
-        >
-          <AddTask closeModal={closeModal} />
-        </Modal>
-        <View style={styles.list}>
-          <FlatList
-            data={tasks}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <Todo
-                id={item.id}
-                description={item.description}
-                due_date={item.due_date}
-                completed={item.completed}
-                toggleCompleted={toggleCompleted}
-              />
-            )}
-          />
+      <Modal
+        visible={addTaskModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setAddTaskModal(false);
+        }}
+      >
+        <AddTask closeModal={closeModal} addTask={addTask} />
+      </Modal>
+      {tasks.length === 0 ? (
+        <Text>Hurray!!! Nothing to do.</Text>
+      ) : (
+        <View style={styles.content}>
+          <View style={styles.list}>
+            <FlatList
+              data={tasks}
+              // TODO: Right now I don't know how to solve this properly so that Typescript is not mad
+              keyExtractor={(item) => item.id?.toString()}
+              renderItem={({ item }) => (
+                <Todo
+                  id={item.id}
+                  description={item.description}
+                  due_date={item.due_date}
+                  completed={item.completed}
+                  toggleCompleted={toggleCompleted}
+                />
+              )}
+            />
+          </View>
         </View>
-      </View>
+      )}
       <Icon
         name="add"
         size={30}
@@ -126,7 +102,6 @@ const App: React.FC = () => {
         reverse={true}
         containerStyle={styles.actionAddButton}
         onPress={() => {
-          console.log("pressed icon");
           setAddTaskModal(true);
         }}
       />

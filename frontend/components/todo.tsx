@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import CheckBox from "@react-native-community/checkbox";
 import { TodoProps } from "../types";
 
-const Todo: React.FC<TodoProps> = (item) => {
+const Todo: React.FC<TodoProps> = (props) => {
   return (
     <TouchableOpacity
       onPress={() => console.log("TODO: Implement edit task function")}
@@ -11,18 +11,18 @@ const Todo: React.FC<TodoProps> = (item) => {
     >
       <View style={styles.verticalAlign}>
         <CheckBox
-          value={item.completed}
-          onValueChange={() => item.toggleCompleted(item.id)}
+          value={props.completed}
+          onValueChange={() => props.toggleCompleted?.(props.id)}
         />
         <View style={styles.info}>
-          {item.completed ? (
+          {props.completed ? (
             <Text style={{ textDecorationLine: "line-through" }}>
-              {item.description}
+              {props.description}
             </Text>
           ) : (
-            <Text>{item.description}</Text>
+            <Text>{props.description}</Text>
           )}
-          <Text>{item.due_date.toDateString()}</Text>
+          <Text>{props.due_date.toDateString()}</Text>
         </View>
       </View>
     </TouchableOpacity>
