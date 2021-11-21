@@ -1,12 +1,19 @@
 import React from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
 import CheckBox from "@react-native-community/checkbox";
+import { Icon } from "react-native-elements";
 import { TodoProps } from "../types";
 
 const Todo: React.FC<TodoProps> = (props) => {
   return (
     <TouchableOpacity
-      onPress={() => console.log("TODO: Implement edit task function")}
+      onPress={() => alert("TODO: Implement edit task function")}
       style={styles.item}
     >
       <View style={styles.verticalAlign}>
@@ -16,14 +23,27 @@ const Todo: React.FC<TodoProps> = (props) => {
         />
         <View style={styles.info}>
           {props.completed ? (
-            <Text style={{ textDecorationLine: "line-through" }}>
+            <Text
+              style={[
+                styles.description,
+                { textDecorationLine: "line-through" },
+              ]}
+            >
               {props.description}
             </Text>
           ) : (
-            <Text>{props.description}</Text>
+            <Text style={styles.description}>{props.description}</Text>
           )}
           <Text>{props.due_date.toDateString()}</Text>
         </View>
+        <Icon
+          name="delete"
+          size={30}
+          type="material"
+          color="red"
+          reverse={false}
+          onPress={() => props.deleteTask?.(props.id)}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -40,9 +60,14 @@ const styles = StyleSheet.create({
   },
   verticalAlign: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignContent: "center",
   },
   info: {
     flexDirection: "column",
+  },
+  description: {
+    fontWeight: "bold",
   },
 });
 

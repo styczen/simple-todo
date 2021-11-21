@@ -38,6 +38,20 @@ const App: React.FC = () => {
     const newTasks = [...tasks];
     const foundIdx = newTasks.findIndex((task) => task.id === id);
     newTasks[foundIdx].completed = !newTasks[foundIdx].completed;
+    fetch(url + "/" + id, {
+      method: "PUT",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(newTasks[foundIdx]),
+    })
+      .then((response) => {
+        if (response.status !== 200) {
+          console.error(response.status);
+        }
+      })
+      .catch((error) => console.error(error));
+
     setTasks(newTasks);
   };
 
@@ -46,8 +60,6 @@ const App: React.FC = () => {
   };
 
   const addTask = (task: TodoProps) => {
-    console.log("Adding new task");
-    console.log(task);
     fetch(url, {
       method: "POST",
       headers: {
@@ -59,6 +71,21 @@ const App: React.FC = () => {
       .then((data) => {
         task.id = data.id;
         setTasks([...tasks, task]);
+      })
+      .catch((error) => console.error(error));
+  };
+
+  const deleteTask = (id: number) => {
+    console.log("delete task", id);
+    fetch(url + "/" + id, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (response.status !== 200) {
+          console.error(response.status);
+        }
+        const newTasks = tasks.filter((task) => task.id !== id);
+        setTasks(newTasks);
       })
       .catch((error) => console.error(error));
   };
@@ -92,6 +119,7 @@ const App: React.FC = () => {
                   due_date={item.due_date}
                   completed={item.completed}
                   toggleCompleted={toggleCompleted}
+                  deleteTask={deleteTask}
                 />
               )}
             />
