@@ -44,6 +44,7 @@ const AddTask: React.FC<AddTaskProps> = (props) => {
               return;
             }
             const newTodo: TodoProps = {
+              id: 0, // TODO: Has to be something to make Typescript happy
               description: taskText,
               due_date: pickedDueDate,
               completed: false,

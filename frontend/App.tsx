@@ -14,30 +14,22 @@ import AddTask from "./components/add_task";
 import { TodoProps } from "./types";
 
 const App: React.FC = () => {
-  const [tasks, setTasks] = useState<TodoProps[]>([
-    // {
-    //   id: 1,
-    //   description: "first task",
-    //   due_date: new Date(Date.now()),
-    //   completed: false,
-    // },
-  ]);
+  const url: string = "http://192.168.0.164:9090/tasks";
+  const [tasks, setTasks] = useState<TodoProps[]>([]);
 
   useEffect(() => {
-    console.log("Starting...");
-    fetch("http://192.168.0.164:9090/tasks")
+    fetch(url)
       .then((response) => response.json())
-      .then((response) => {
+      .then((data) => {
         let loadedTasks: TodoProps[] = [];
-        for (let i = 0; i < response.length; i += 1) {
-          console.log(i, response[i]);
-          const todo: TodoProps = response[i];
-          todo.due_date = new Date(response[i]);
+        for (let i = 0; i < data.length; i += 1) {
+          const todo: TodoProps = data[i];
+          todo.due_date = new Date(todo.due_date);
           loadedTasks.push(todo);
         }
         setTasks(loadedTasks);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.error(error));
   }, []);
 
   const [addTaskModal, setAddTaskModal] = useState<boolean>(false);
@@ -56,7 +48,19 @@ const App: React.FC = () => {
   const addTask = (task: TodoProps) => {
     console.log("Adding new task");
     console.log(task);
-    setTasks([...tasks, task]);
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(task),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        task.id = data.id;
+        setTasks([...tasks, task]);
+      })
+      .catch((error) => console.error(error));
   };
 
   return (
@@ -80,7 +84,7 @@ const App: React.FC = () => {
             <FlatList
               data={tasks}
               // TODO: Right now I don't know how to solve this properly so that Typescript is not mad
-              keyExtractor={(item) => item.id?.toString()}
+              keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <Todo
                   id={item.id}

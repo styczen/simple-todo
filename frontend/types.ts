@@ -1,5 +1,5 @@
 export type TodoProps = {
-  id?: number;
+  id: number;
   description: string;
   due_date: Date;
   completed: boolean;
