@@ -3,7 +3,8 @@ export type TodoProps = {
   description: string;
   due_date: Date;
   completed: boolean;
-  toggleCompleted?: (id: number) => void;
+  updateTask?: (task: TodoProps) => void;
+  //  toggleCompleted?: (id: number) => void;
   deleteTask?: (id: number) => void;
 };
 

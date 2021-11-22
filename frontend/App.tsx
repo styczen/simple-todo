@@ -6,20 +6,30 @@ import {
   View,
   Modal,
   Text,
+  Switch,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import Todo from "./components/todo";
 import Header from "./components/header";
-import AddTask from "./components/add_task";
+import AddTask from "./screens/addTask";
 import { TodoProps } from "./types";
+import NetInfo from "@react-native-community/netinfo";
 
 const App: React.FC = () => {
   const url: string = "http://192.168.0.164:9090/tasks";
   const [tasks, setTasks] = useState<TodoProps[]>([]);
+  const [showMyDay, setShowMyDay] = useState<boolean>(false);
 
   useEffect(() => {
+    NetInfo.fetch().then((state) => {
+      console.log("is connected:", state.isConnected);
+      console.log("type:", state.type);
+    });
+
     fetch(url)
-      .then((response) => response.json())
+      .then((response) => {
+        return response.json();
+      })
       .then((data) => {
         let loadedTasks: TodoProps[] = [];
         for (let i = 0; i < data.length; i += 1) {
@@ -29,16 +39,19 @@ const App: React.FC = () => {
         }
         setTasks(loadedTasks);
       })
-      .catch((error) => console.error(error));
+      .catch((error) => {
+        console.error(error);
+        setTasks([]);
+      });
   }, []);
 
   const [addTaskModal, setAddTaskModal] = useState<boolean>(false);
 
-  const toggleCompleted = (id: number) => {
+  const updateTask = (task: TodoProps) => {
     const newTasks = [...tasks];
-    const foundIdx = newTasks.findIndex((task) => task.id === id);
-    newTasks[foundIdx].completed = !newTasks[foundIdx].completed;
-    fetch(url + "/" + id, {
+    const foundIdx = newTasks.findIndex((oldTask) => oldTask.id === task.id);
+    newTasks[foundIdx] = task;
+    fetch(url + "/" + task.id, {
       method: "PUT",
       headers: {
         "Content-type": "application/json",
@@ -76,7 +89,6 @@ const App: React.FC = () => {
   };
 
   const deleteTask = (id: number) => {
-    console.log("delete task", id);
     fetch(url + "/" + id, {
       method: "DELETE",
     })
@@ -107,21 +119,37 @@ const App: React.FC = () => {
         <Text>Hurray!!! Nothing to do.</Text>
       ) : (
         <View style={styles.content}>
+          <View style={styles.myDayFilter}>
+            <Switch
+              onValueChange={(value) => setShowMyDay(value)}
+              value={showMyDay}
+            />
+            {showMyDay ? <Text>My Day</Text> : <Text>All tasks</Text>}
+          </View>
+
           <View style={styles.list}>
             <FlatList
+              contentContainerStyle={{ paddingBottom: 150 }}
               data={tasks}
               // TODO: Right now I don't know how to solve this properly so that Typescript is not mad
               keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <Todo
-                  id={item.id}
-                  description={item.description}
-                  due_date={item.due_date}
-                  completed={item.completed}
-                  toggleCompleted={toggleCompleted}
-                  deleteTask={deleteTask}
-                />
-              )}
+              renderItem={({ item }) => {
+                const today = new Date(Date.now());
+                const taskIsToday =
+                  item.due_date.toDateString() === today.toDateString();
+                if (taskIsToday || (!showMyDay && !taskIsToday)) {
+                  return (
+                    <Todo
+                      id={item.id}
+                      description={item.description}
+                      due_date={item.due_date}
+                      completed={item.completed}
+                      updateTask={updateTask}
+                      deleteTask={deleteTask}
+                    />
+                  );
+                }
+              }}
             />
           </View>
         </View>
@@ -148,6 +176,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    flexDirection: "column",
+    alignContent: "center",
   },
   list: {
     marginTop: 20,
@@ -156,6 +186,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 30,
     right: 30,
+  },
+  myDayFilter: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
   },
 });
 

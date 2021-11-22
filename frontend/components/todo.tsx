@@ -1,25 +1,41 @@
 import React from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-} from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import CheckBox from "@react-native-community/checkbox";
 import { Icon } from "react-native-elements";
 import { TodoProps } from "../types";
+import EditTask from "../screens/editTask";
 
 const Todo: React.FC<TodoProps> = (props) => {
+  const toggleCompleted = () => {
+    const updatedTask: TodoProps = {
+      id: props.id,
+      description: props.description,
+      due_date: props.due_date,
+      completed: !props.completed,
+    };
+    props.updateTask?.(updatedTask);
+  };
+
   return (
+    //    <>
+    //      <Modal
+    //        visible={addTaskModal}
+    //        animationType="slide"
+    //        transparent={true}
+    //        onRequestClose={() => {
+    //          setAddTaskModal(false);
+    //        }}
+    //      >
+    //        <EditTask />
+    //      </Modal>
     <TouchableOpacity
       onPress={() => alert("TODO: Implement edit task function")}
       style={styles.item}
     >
-      <View style={styles.verticalAlign}>
+      <View style={styles.horizontalAlign}>
         <CheckBox
           value={props.completed}
-          onValueChange={() => props.toggleCompleted?.(props.id)}
+          onValueChange={() => toggleCompleted()}
         />
         <View style={styles.info}>
           {props.completed ? (
@@ -46,6 +62,7 @@ const Todo: React.FC<TodoProps> = (props) => {
         />
       </View>
     </TouchableOpacity>
+    //    </>
   );
 };
 
@@ -58,10 +75,10 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderRadius: 10,
   },
-  verticalAlign: {
+  horizontalAlign: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignContent: "center",
+    alignItems: "center",
   },
   info: {
     flexDirection: "column",
