@@ -12,10 +12,14 @@ be some very stupid things done there
 components e.g. in react-native-elements but I want to do something on my own
 (at least this time)
 
+### General TODOs
+
+- [ ] write instruction how to setup everything
+
 ### Backend TODOs
 
-- write some tests for backend,
-- a lot of refactoring...
+- [ ] write some tests for backend,
+- [ ] a lot of refactoring...
 
 ### Frontend TODOs
 
