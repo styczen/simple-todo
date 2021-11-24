@@ -12,20 +12,14 @@ be some very stupid things done there
 components e.g. in react-native-elements but I want to do something on my own
 (at least this time)
 
-### General TODOs
+## Setup
+1. Install Docker (e.g. Ubuntu: https://docs.docker.com/engine/install/ubuntu/)
+2. Install Docker Compose https://docs.docker.com/compose/install/.
 
-- [ ] write instruction how to setup everything
+**NOTE:** If you want to install Docker Compose (at least **version 1**) on Raspberry Pi,
+instruction above might not work while installing it. 
+Follow steps below (for Docker Compose, everything should be fine with Docker alone):
+- install dependencies: *sudo apt-get install -y libffi-dev libssl-dev python3-dev python3 python3-pip*,
+- install compose: *sudo pip3 install docker-compose*
 
-### Backend TODOs
-
-- [ ] write some tests for backend,
-- [ ] a lot of refactoring...
-
-### Frontend TODOs
-
-- [ ] create simplest/usable UI possible (almost done),
-- [ ] store current data locally when not connected to server,
-- [ ] option to set specific time when task should be done,
-- [ ] push notifications when task has reminder set,
-- [ ] when simple UI is done and other stuff is finished, make UI better (maybe
-      use some designing tool first like Figma, to lay everything out),
+Maybe there are no problems installing Docker Compose V2 because it is written in Go.
