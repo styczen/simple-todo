@@ -12,20 +12,7 @@ be some very stupid things done there
 components e.g. in react-native-elements but I want to do something on my own
 (at least this time)
 
-### General TODOs
-
-- [ ] write instruction how to setup everything
-
-### Backend TODOs
-
-- [ ] write some tests for backend,
-- [ ] a lot of refactoring...
-
-### Frontend TODOs
-
-- [ ] create simplest/usable UI possible (almost done),
-- [ ] store current data locally when not connected to server,
-- [ ] option to set specific time when task should be done,
-- [ ] push notifications when task has reminder set,
-- [ ] when simple UI is done and other stuff is finished, make UI better (maybe
-      use some designing tool first like Figma, to lay everything out),
+## Setup
+1. Install Docker on your machine (e.g. Ubuntu: https://docs.docker.com/engine/install/ubuntu/)
+2. Install Docker Compose https://docs.docker.com/compose/install/.
+3. ...
