@@ -13,6 +13,13 @@ components e.g. in react-native-elements but I want to do something on my own
 (at least this time)
 
 ## Setup
-1. Install Docker on your machine (e.g. Ubuntu: https://docs.docker.com/engine/install/ubuntu/)
+1. Install Docker (e.g. Ubuntu: https://docs.docker.com/engine/install/ubuntu/)
 2. Install Docker Compose https://docs.docker.com/compose/install/.
-3. ...
+
+**NOTE:** If you want to install Docker Compose (at least **version 1**) on Raspberry Pi,
+instruction above might not work while installing it. 
+Follow steps below (for Docker Compose, everything should be fine with Docker alone):
+- install dependencies: *sudo apt-get install -y libffi-dev libssl-dev python3-dev python3 python3-pip*,
+- install compose: *sudo pip3 install docker-compose*
+
+Maybe there are no problems installing Docker Compose V2 because it is written in Go.
