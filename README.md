@@ -25,6 +25,7 @@ components e.g. in react-native-elements but I want to do something on my own
 
 - [ ] create simplest/usable UI possible (almost done),
 - [ ] store current data locally when not connected to server,
+- [ ] refactor code (separate code for fetching),
 - [ ] option to set specific time when task should be done,
 - [ ] push notifications when task has reminder set,
 - [ ] when simple UI is done and other stuff is finished, make UI better (maybe
