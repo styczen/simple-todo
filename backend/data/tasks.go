@@ -136,7 +136,7 @@ func setupDb(l *log.Logger) (*sql.DB, error) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	timeout := 30 * time.Second
+	timeout := 120 * time.Second
 	timeoutExceeded := time.After(timeout)
 	for {
 		select {
