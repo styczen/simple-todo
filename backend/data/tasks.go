@@ -2,9 +2,7 @@ package data
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"time"
@@ -35,28 +33,35 @@ func (tDb *TasksDb) CloseDbConn() {
 
 // Task represents data about one task user provided
 type Task struct {
-	ID          int       `json:"id"`
-	Description string    `json:"description"`
-	DueDate     time.Time `json:"due_date"`
-	Completed   bool      `json:"completed"`
+	// The ID for the task
+	ID int `json:"id"`
+
+	// Description of the task, its content
+	Description string `json:"description"`
+
+	// Date on which the task should be completed
+	DueDate time.Time `json:"due_date"`
+
+	// Whether the task is completed or not
+	Completed bool `json:"completed"`
 }
 
-func (t *Task) ToJSON(w io.Writer) error {
-	encoder := json.NewEncoder(w)
-	return encoder.Encode(t)
-}
+// func (t *Task) ToJSON(w io.Writer) error {
+// 	encoder := json.NewEncoder(w)
+// 	return encoder.Encode(t)
+// }
 
-func (t *Task) FromJSON(r io.Reader) error {
-	decoder := json.NewDecoder(r)
-	return decoder.Decode(t)
-}
+// func (t *Task) FromJSON(r io.Reader) error {
+// 	decoder := json.NewDecoder(r)
+// 	return decoder.Decode(t)
+// }
 
 type Tasks []*Task
 
-func (t *Tasks) ToJSON(w io.Writer) error {
-	encoder := json.NewEncoder(w)
-	return encoder.Encode(t)
-}
+// func (t *Tasks) ToJSON(w io.Writer) error {
+// 	encoder := json.NewEncoder(w)
+// 	return encoder.Encode(t)
+// }
 
 var ErrTaskNotFound = fmt.Errorf("Task not found")
 

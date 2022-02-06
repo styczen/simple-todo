@@ -37,7 +37,7 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := tasks.ToJSON(rw); err != nil {
+		if err := data.ToJSON(tasks, rw); err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot serializer all tasks. Reason: %v", err), http.StatusInternalServerError)
 			return
 		}
@@ -48,7 +48,7 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 		t.l.Println("All POST method")
 		defer r.Body.Close()
 		var task data.Task
-		if err := task.FromJSON(r.Body); err != nil {
+		if err := data.FromJSON(task, r.Body); err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot deserialize new task. Reason: %v", err), http.StatusBadRequest)
 			return
 		}
@@ -62,7 +62,7 @@ func (t *Tasks) HandleAllTasks(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusCreated)
 		// What happens when there is some problem when serializing to JSON?
 		// There will be status 201 (created) but bad JSON...
-		if err := task.ToJSON(rw); err != nil {
+		if err := data.ToJSON(task, rw); err != nil {
 			http.Error(rw, fmt.Sprintf(
 				"Cannot serialize new task. Reason: %v. But it should not happen :-)", err),
 				http.StatusBadRequest)
@@ -103,7 +103,7 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := task.ToJSON(rw); err != nil {
+		if err := data.ToJSON(task, rw); err != nil {
 			error_msg := fmt.Sprint("Cannot serialize task with ID: ", id, ". Error: ", err)
 			t.l.Println(error_msg)
 			http.Error(rw, error_msg, http.StatusBadRequest)
@@ -117,7 +117,7 @@ func (t *Tasks) HandleSingleTask(rw http.ResponseWriter, r *http.Request) {
 		t.l.Println("PUT method")
 		var updated_task data.Task
 		defer r.Body.Close()
-		if err := updated_task.FromJSON(r.Body); err != nil {
+		if err := data.FromJSON(updated_task, r.Body); err != nil {
 			http.Error(rw, fmt.Sprintf("Cannot deserialize new task. Reason: %v", err), http.StatusBadRequest)
 			return
 		}
